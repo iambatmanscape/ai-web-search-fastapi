@@ -2,7 +2,7 @@ from langchain.prompts import PromptTemplate
 import logging
 from typing import Dict, Any
 from fastapi import Request
-from oprah import webscraper
+from .oprah import webscraper
 from langchain_openai import OpenAIEmbeddings
 import faiss
 from langchain_community.docstore.in_memory import InMemoryDocstore

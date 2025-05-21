@@ -4,8 +4,8 @@ import logging
 import aiohttp
 from bs4 import BeautifulSoup
 from fastapi import Request
-from markdown_extractor import markdownify
-from markdown_cleaner import MarkdownCleaner 
+from .markdown_extractor import markdownify
+from .markdown_cleaner import MarkdownCleaner 
 from dotenv import load_dotenv
 load_dotenv()
 from langchain.text_splitter import MarkdownTextSplitter
@@ -164,7 +164,7 @@ async def get_news_urls(query):
     f1 = time.time()
     headers = {
         "User-Agent": "Mozilla/5.0",
-        "x-api-key": "easykey"
+        "x-api-key": f"{getenv('SEARXNG_API_KEY')}"
     }
     modified_query = query.replace(" ", "+")
     if "latest" in query.lower() or "current" in query.lower():
