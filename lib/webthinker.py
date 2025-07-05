@@ -7,9 +7,11 @@ from langchain_openai import OpenAIEmbeddings
 import faiss
 from langchain_community.docstore.in_memory import InMemoryDocstore
 from langchain_community.vectorstores import FAISS
+from langchain_huggingface.embeddings import HuggingFaceEmbeddings
 from dotenv import load_dotenv
 import asyncio
 import time
+from datetime import datetime
 from langchain_openai import OpenAI
 from langchain_ollama import OllamaLLM
 load_dotenv('.env')
@@ -20,6 +22,10 @@ from async_lru import alru_cache
 
 
 logging.basicConfig(level=logging.INFO)
+
+embedding_model = HuggingFaceEmbeddings(
+    model_name="BAAI/bge-m3"
+)
 
 
 async def gather_extracted_info(self, question, final_results):
@@ -78,7 +84,7 @@ class WebThinkerAgent:
         - Fabricate or infer beyond the provided content.
         - Include editorials, opinions, or speculation unless explicitly requested.
         - For latest news, only include the most recent and relevant information.
-        - Today's date is 20 may 2025
+        - Today's date is {today}
 
         Format your response using:
         - Clear categorization by theme if applicable (e.g., "PRODUCT UPDATES:", "LEGAL:", "EVENTS:", "ANNOUNCEMENTS:")
@@ -104,7 +110,8 @@ class WebThinkerAgent:
         """Extract relevant information from search results."""
         try:
             extraction_chain = self.extraction_prompt | self.llm
-            extracted_info = await extraction_chain.ainvoke({"question": question, "search_results": search_results})
+            today = datetime.today().strftime("%d %B %Y")
+            extracted_info = await extraction_chain.ainvoke({"question": question, "search_results": search_results, "today": today})
             return extracted_info
         except Exception as e:
             logging.error(f"Error extracting information: {e}")
@@ -143,7 +150,8 @@ class WebThinkerAgent:
             # logging.info(f"Extracted information: {total_extracted_info}")
 
             finalized_chain = self.join_prompt | self.llm
-            finalized_summary = await finalized_chain.ainvoke({"question": question, "search_results": total_extracted_info})
+            today = datetime.today()
+            finalized_summary = await finalized_chain.ainvoke({"question": question, "search_results": total_extracted_info, "today": today.strftime("%d %B %Y")})
 
             return {
                 "search_results": search_results,
@@ -161,9 +169,7 @@ class WebThinkerAgent:
 
 def get_vector_store():
     # Initialize embeddings
-    embeddings = OpenAIEmbeddings(
-        api_key=getenv('OPENAI_API_KEY')
-    )
+    embeddings = embedding_model
     
     # Compute embedding dimension
     try:
