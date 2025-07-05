@@ -135,7 +135,7 @@ class WebThinkerAgent:
                 )
             
             # vector_store.add_texts(search_results, metadatas=[{"source": "someting"}])
-            final_results = vector_store.similarity_search(f"{question}", k=int(getenv('NUMBER_OF_POINTS')))
+            final_results = vector_store.similarity_search(f"{question}", k=int(getenv('NUMBER_OF_POINTS', '10')))
             vector_store._documents = []
             vector_store.index.reset()
 
@@ -144,9 +144,9 @@ class WebThinkerAgent:
             else:
                 final_results = ["No relevant information found."]
 
-            # total_extracted_info = await self.extract_information(question, "\n\n".join(final_results))
+            total_extracted_info = await self.extract_information(question, "\n\n".join(final_results))
 
-            total_extracted_info = await gather_extracted_info(self, question, final_results)
+            # total_extracted_info = await gather_extracted_info(self, question, final_results)
             # logging.info(f"Extracted information: {total_extracted_info}")
 
             finalized_chain = self.join_prompt | self.llm
